@@ -1,6 +1,7 @@
-import streamlit as st
 import textwrap
 from concurrent.futures import ThreadPoolExecutor
+
+import streamlit as st
 from snowflake.core import Root  # requires snowflake>=0.8.0
 from snowflake.cortex import complete
 
@@ -192,7 +193,7 @@ def show_feedback_controls(message_index):
 cols = st.columns([3, 1], vertical_alignment="bottom")
 
 with cols[0]:
-    st.title("Streamlit assistant")
+    st.title("Streamlit assistant", anchor=False)
 
 with cols[1]:
     clear_conversation = st.button(
