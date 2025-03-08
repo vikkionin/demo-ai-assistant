@@ -1,3 +1,4 @@
 snowflake-ml-python
 snowflake-snowpark-python
+snowflake
 streamlit
