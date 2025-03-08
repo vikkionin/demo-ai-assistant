@@ -1,3 +1,17 @@
+# Copyright 2025 Snowflake Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import textwrap
 from concurrent.futures import ThreadPoolExecutor
 
@@ -32,6 +46,16 @@ HISTORY_LENGTH = 5
 SUMMARIZE_OLD_HISTORY = True
 DOCSTRINGS_CONTEXT_LEN = 5
 PAGES_CONTEXT_LEN = 5
+
+CORTEX_URL = (
+    "https://docs.snowflake.com/en/guides-overview-ai-features"
+    "?utm_source=streamlit"
+    "&utm_medium=referral"
+    "&utm_campaign=streamlit-demo-apps"
+    "&utm_content=streamlit-assistant"
+)
+
+GITHUB_URL = "https://github.com/sfc-gh-tteixeira/docs-chat"
 
 DEBUG_MODE = st.query_params.get("debug", "false").lower() == "true"
 
@@ -209,8 +233,8 @@ st.write(
     ":small["
     ":material/info: "
     "This app uses "
-    "[Snowflake Cortex](https://docs.snowflake.com/en/guides-overview-ai-features) "
-    "and is [open source](#)! "
+    f"[Snowflake Cortex]({CORTEX_URL}) "
+    f"and is [open source]({GITHUB_URL})! "
     "]"
 )
 
