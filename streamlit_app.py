@@ -70,6 +70,7 @@ INSTRUCTIONS = textwrap.dedent("""
     - Respond with markdown.
     - Avoid experimental and private APIs.
     - Don't say things like "according to the provided context".
+    - When available, include links with related URLs at the bottom.
     - Streamlit is a product of Snowflake.
 """)
 
