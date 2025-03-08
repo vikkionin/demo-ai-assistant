@@ -152,8 +152,7 @@ def search_relevant_pages(query):
     results = context_documents.results
 
     context = [
-        f"[Document {i}]: {
-            row['PAGE_CHUNK']}"
+        f"[{row['PAGE_URL']}]: {row['PAGE_CHUNK']}"
         for i, row in enumerate(results)
     ]
     context_str = "\n".join(context)
