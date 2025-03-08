@@ -1,4 +1,4 @@
-# Streamlit assistant &emdash; a documentation chatbot for Streamlit
+# Streamlit assistant &mdash; a documentation chatbot for Streamlit
 
 Ever wanted to chat with the Streamlit documentation? Well, with the power of
 [Snowflake Cortex](https://docs.snowflake.com/en/guides-overview-ai-features?utm_source=streamlit&utm_medium=referral&utm_campaign=streamlit-demo-apps&utm_content=streamlit-assistant)
