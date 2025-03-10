@@ -71,6 +71,7 @@ INSTRUCTIONS = textwrap.dedent("""
     - Avoid experimental and private APIs.
     - Don't say things like "according to the provided context".
     - When available, include links with related URLs at the bottom.
+    - For all links, set target="_parent".
     - Streamlit is a product of Snowflake.
 """)
 
@@ -229,13 +230,15 @@ with cols[1]:
 if clear_conversation or "messages" not in st.session_state:
     st.session_state.messages = []
 
-st.write(
+st.markdown(
     ":small["
-    ":material/info: "
+    "ⓘ "
     "This app uses "
-    f"[Snowflake Cortex]({CORTEX_URL}) "
-    f"and is [open source]({GITHUB_URL})! "
-    "]"
+    f'<a href="{CORTEX_URL}" target="_parent">Snowflake Cortex</a> '
+    "and is "
+    f'<a href="{GITHUB_URL}" target="_parent">totally open source</a>! '
+    "]",
+    unsafe_allow_html=True
 )
 
 # Show a fake question from the assistant to get the user started.
