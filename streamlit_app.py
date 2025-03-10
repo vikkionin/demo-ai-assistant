@@ -27,7 +27,7 @@ st.set_page_config(page_title="Streamlit assistant", page_icon="💬")
 # Set things up.
 
 
-@st.cache_resource
+@st.cache_resource(ttl="12h")
 def get_session():
     return st.connection("snowflake").session()
 
@@ -259,7 +259,7 @@ if question := st.chat_input("Ask a question..."):
 
     # Display message as a speech bubble.
     with st.chat_message("user"):
-        st.markdown(question)
+        st.text(question)
 
     # Display assistant response as a speech bubble.
     with st.chat_message("assistant"):
