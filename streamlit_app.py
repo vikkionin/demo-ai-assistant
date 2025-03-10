@@ -230,15 +230,13 @@ with cols[1]:
 if clear_conversation or "messages" not in st.session_state:
     st.session_state.messages = []
 
-st.markdown(
+st.write(
     ":small["
-    "ⓘ "
+    ":material/info: "
     "This app uses "
-    f'<a href="{CORTEX_URL}" target="_parent">Snowflake Cortex</a> '
-    "and is "
-    f'<a href="{GITHUB_URL}" target="_parent">totally open source</a>! '
-    "]",
-    unsafe_allow_html=True
+    f"[Snowflake Cortex]({CORTEX_URL}) "
+    f"and is [open source]({GITHUB_URL})! "
+    "]"
 )
 
 # Show a fake question from the assistant to get the user started.
