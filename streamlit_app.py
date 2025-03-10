@@ -20,10 +20,7 @@ from snowflake.core import Root  # requires snowflake>=0.8.0
 from snowflake.cortex import complete
 
 
-DEBUG_MODE = st.query_params.get("debug", "false").lower() == "true"
-LAYOUT_MODE = st.query_params.get("layout", "centered").lower()
-
-st.set_page_config(page_title="Streamlit assistant", page_icon="💬", layout=LAYOUT_MODE)
+st.set_page_config(page_title="Streamlit assistant", page_icon="💬")
 
 
 # -----------------------------------------------------------------------------
@@ -59,6 +56,8 @@ CORTEX_URL = (
 )
 
 GITHUB_URL = "https://github.com/streamlit/streamlit-assistant"
+
+DEBUG_MODE = st.query_params.get("debug", "false").lower() == "true"
 
 INSTRUCTIONS = textwrap.dedent("""
     - You are a helpful AI chat assistant focused on answering quesions about Streamlit and general Python.
