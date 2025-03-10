@@ -295,3 +295,22 @@ if question := st.chat_input("Ask a question..."):
         # Other stuff.
         show_feedback_controls(len(st.session_state.messages) - 1)
         send_telemetry(question=question, response=response)
+
+
+# When running in docs.streamlit.io, we want all links to replace the current
+# tab rather than open in a new one. So here's a JS hack for that.
+
+from streamlit.components.v1 import html
+
+html("""
+<script>
+    window.parent.document.addEventListener("click", ev => {
+        const el = ev.target
+        if (el.tagName != "A") return
+        if (!el.href.startsWith("https://docs.streamlit.io/")) return
+
+        ev.preventDefault()
+        window.open(el.href, "_top")
+    })
+</script>
+""")
