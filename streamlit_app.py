@@ -55,7 +55,7 @@ CORTEX_URL = (
     "&utm_content=streamlit-assistant"
 )
 
-GITHUB_URL = "https://github.com/sfc-gh-tteixeira/docs-chat"
+GITHUB_URL = "https://github.com/streamlit/streamlit-assistant"
 
 DEBUG_MODE = st.query_params.get("debug", "false").lower() == "true"
 
