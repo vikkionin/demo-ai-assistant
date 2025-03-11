@@ -22,10 +22,8 @@ from snowflake.cortex import complete
 
 st.set_page_config(page_title="Streamlit assistant", page_icon="💬")
 
-
 # -----------------------------------------------------------------------------
 # Set things up.
-
 
 @st.cache_resource(ttl="12h")
 def get_session():
@@ -153,7 +151,7 @@ def search_relevant_pages(query):
 
     context = [
         f"[{row['PAGE_URL']}]: {row['PAGE_CHUNK']}"
-        for i, row in enumerate(results)
+        for row in results
     ]
     context_str = "\n".join(context)
 
