@@ -6,7 +6,7 @@ now you can!
 
 You can try out the Streamlit Assistant app below:
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://docs-chat-nyooyubbzex9pjbyv7bxs9.streamlit.app/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://st-assistant.streamlit.app/)
 
 ## Installation (coming soon)
 
