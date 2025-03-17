@@ -233,10 +233,17 @@ if clear_conversation or "messages" not in st.session_state:
 
 st.write(
     ":small["
+    ":material/balance: "
+    "This is an AI chatbot, so it may hallucinate. Nothing here should be taken as legal advice ;)"
+    "]"
+)
+
+st.write(
+    ":small["
     ":material/info: "
     "This app uses "
     f"[Snowflake Cortex]({CORTEX_URL}) "
-    f"and is [open source]({GITHUB_URL})! "
+    f"and is [fully open source]({GITHUB_URL})! "
     "]"
 )
 
