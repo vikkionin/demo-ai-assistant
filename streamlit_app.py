@@ -231,14 +231,28 @@ with cols[1]:
 if clear_conversation or "messages" not in st.session_state:
     st.session_state.messages = []
 
-st.write(
-    ":small["
-    ":material/balance: "
-    "This is an AI chatbot, so it may hallucinate. Nothing here should be taken as legal advice ;)"
-    "]"
-)
+with st.expander(
+        ":material/balance: "
+        "This is an AI chatbot, so it may hallucinate. Expand to see legal "
+        "disclaimer."
+    ):
+    st.write("""
+        This AI chatbot is powered by Snowflake and public Streamlit
+        information. Answers may be inaccurate, inefficient, or biased.
+        Any use or decisions based on such answers should include reasonable
+        practices including human oversight to ensure they are safe,
+        accurate, and suitable for your intended purpose. Streamlit is not
+        liable for any actions, losses, or damages resulting from the use
+        of the chatbot. Do not enter any private, sensitive, personal, or
+        regulated data. By using this chatbot, you acknowledge and agree
+        that input you provide and answers you receive (collectively,
+        “Content”) may be used by Snowflake to provide, maintain, develop,
+        and improve their respective offerings. For more
+        information on how Snowflake may use your Content, see
+        https://streamlit.io/terms-of-service."
+    """)
 
-st.write(
+st.info(
     ":small["
     ":material/info: "
     "This app uses "
