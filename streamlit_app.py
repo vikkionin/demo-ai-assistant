@@ -286,7 +286,7 @@ if question := st.chat_input("Ask a question..."):
                 st.code(full_prompt)
                 status.update(label="Prompt computed")
         else:
-            with st.expander("Researching..."):
+            with st.spinner("Researching..."):
                 full_prompt = build_question_prompt(question)
 
         # Send prompt to LLM.
