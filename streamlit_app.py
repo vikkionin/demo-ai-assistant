@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import textwrap
 from concurrent.futures import ThreadPoolExecutor
+import datetime
+import textwrap
+import time
 
 import streamlit as st
 from snowflake.core import Root  # requires snowflake>=0.8.0
@@ -24,6 +26,7 @@ st.set_page_config(page_title="Streamlit assistant", page_icon="💬")
 
 # -----------------------------------------------------------------------------
 # Set things up.
+
 
 @st.cache_resource(ttl="12h")
 def get_session():
@@ -44,6 +47,7 @@ HISTORY_LENGTH = 5
 SUMMARIZE_OLD_HISTORY = True
 DOCSTRINGS_CONTEXT_LEN = 10
 PAGES_CONTEXT_LEN = 10
+MIN_TIME_BETWEEN_REQUESTS = datetime.timedelta(seconds=3)
 
 CORTEX_URL = (
     "https://docs.snowflake.com/en/guides-overview-ai-features"
@@ -209,6 +213,9 @@ def show_feedback_controls(message_index):
 
 cols = st.columns([3, 1], vertical_alignment="bottom")
 
+if "prev_question_timestamp" not in st.session_state:
+    st.session_state.prev_question_timestamp = datetime.datetime.fromtimestamp(0)
+
 with cols[0]:
     st.title("Streamlit assistant", anchor=False)
 
@@ -277,7 +284,16 @@ if question := st.chat_input("Ask a question..."):
 
     # Display assistant response as a speech bubble.
     with st.chat_message("assistant"):
-        question = question.replace("'", "")
+        with st.spinner("Waiting..."):
+            # Rate-limit the input if needed.
+            question_timestamp = datetime.datetime.now()
+            time_diff = question_timestamp - st.session_state.prev_question_timestamp
+            st.session_state.prev_question_timestamp = question_timestamp
+
+            if time_diff < MIN_TIME_BETWEEN_REQUESTS:
+                time.sleep(time_diff.seconds + time_diff.microseconds * 0.001)
+
+            question = question.replace("'", "")
 
         # Build a detailed prompt.
         if DEBUG_MODE:
@@ -303,8 +319,7 @@ if question := st.chat_input("Ask a question..."):
 
         # Add messages to chat history.
         st.session_state.messages.append({"role": "user", "content": question})
-        st.session_state.messages.append(
-            {"role": "assistant", "content": response})
+        st.session_state.messages.append({"role": "assistant", "content": response})
 
         # Other stuff.
         show_feedback_controls(len(st.session_state.messages) - 1)
