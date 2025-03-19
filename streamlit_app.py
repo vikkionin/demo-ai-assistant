@@ -58,13 +58,14 @@ GITHUB_URL = "https://github.com/streamlit/streamlit-assistant"
 DEBUG_MODE = st.query_params.get("debug", "false").lower() == "true"
 
 INSTRUCTIONS = textwrap.dedent("""
-    - You are a helpful AI chat assistant focused on answering quesions about Streamlit,
-      Streamlit Community Cloud, and general Python.
-    - You will be given extra information provided inside tags like this <foo></foo>.
+    - You are a helpful AI chat assistant focused on answering quesions about
+      Streamlit, Streamlit Community Cloud, and general Python.
+    - You will be given extra information provided inside tags like this
+      <foo></foo>.
     - Use context and history to provide a coherent answer.
-    - Use markdown such as headers (starting with ###), code blocks, bullet points,
-      3-space indentation for sub bullets, and backticks for inline code and markdown
-      features like icon names.
+    - Use markdown such as headers (starting with ###), code blocks, bullet
+      points, 3-space indentation for sub bullets, and backticks for inline
+      code and markdown features like icon names.
     - Assume the user is a newbie.
     - Write paragraphs of explanation, as if you're writing documentation.
     - Offer alternatives where they exist.
@@ -101,16 +102,13 @@ def build_question_prompt(question):
     tasks = []
 
     if SUMMARIZE_OLD_HISTORY and old_history:
-        tasks.append(
-            ("old_message_summary", generate_chat_summary, (old_history,)))
+        tasks.append(("old_message_summary", generate_chat_summary, (old_history,)))
 
     if PAGES_CONTEXT_LEN:
-        tasks.append(
-            ("documentation_pages", search_relevant_pages, (question,)))
+        tasks.append(("documentation_pages", search_relevant_pages, (question,)))
 
     if DOCSTRINGS_CONTEXT_LEN:
-        tasks.append(
-            ("command_docstrings", search_relevant_docstrings, (question,)))
+        tasks.append(("command_docstrings", search_relevant_docstrings, (question,)))
 
     results = executor.map(lambda task: (task[0], task[1](*task[2])), tasks)
     context = {k: v for k, v in results}
@@ -138,10 +136,7 @@ def history_to_text(chat_history):
 
 def search_relevant_pages(query):
     cortex_search_service = (
-        root
-        .databases[DB]
-        .schemas[SCHEMA]
-        .cortex_search_services[PAGES_SEARCH_SERVICE]
+        root.databases[DB].schemas[SCHEMA].cortex_search_services[PAGES_SEARCH_SERVICE]
     )
 
     context_documents = cortex_search_service.search(
@@ -153,10 +148,7 @@ def search_relevant_pages(query):
 
     results = context_documents.results
 
-    context = [
-        f"[{row['PAGE_URL']}]: {row['PAGE_CHUNK']}"
-        for row in results
-    ]
+    context = [f"[{row['PAGE_URL']}]: {row['PAGE_CHUNK']}" for row in results]
     context_str = "\n".join(context)
 
     return context_str
@@ -179,8 +171,7 @@ def search_relevant_docstrings(query):
     results = context_documents.results
 
     context = [
-        f"[Document {i}]: {row['DOCSTRING_CHUNK']}"
-        for i, row in enumerate(results)
+        f"[Document {i}]: {row['DOCSTRING_CHUNK']}" for i, row in enumerate(results)
     ]
     context_str = "\n".join(context)
 
@@ -232,10 +223,10 @@ if clear_conversation or "messages" not in st.session_state:
     st.session_state.messages = []
 
 with st.expander(
-        ":material/balance: "
-        "This is an AI chatbot, so it may hallucinate. Expand to see legal "
-        "disclaimer."
-    ):
+    ":material/balance: "
+    "This is an AI chatbot, so it may hallucinate. Expand to see legal "
+    "disclaimer."
+):
     st.write("""
         This AI chatbot is powered by Snowflake and public Streamlit
         information. Answers may be inaccurate, inefficient, or biased.
