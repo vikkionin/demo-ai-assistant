@@ -115,7 +115,7 @@ def build_prompt(**kwargs):
     return prompt_str
 
 
-# Just some little objects to make it tasks easier to read.
+# Just some little objects to make tasks easier to read.
 TaskInfo = namedtuple("TaskInfo", ["name", "function", "args"])
 TaskResult = namedtuple("TaskResult", ["name", "result"])
 
@@ -237,6 +237,15 @@ def search_relevant_docstrings(query):
     context_str = "\n".join(context)
 
     return context_str
+
+
+def get_response(prompt):
+    return complete(
+        MODEL,
+        prompt,
+        stream=True,
+        session=get_session(),
+    )
 
 
 def send_telemetry(**kwargs):
@@ -367,12 +376,7 @@ if question := st.chat_input("Ask a question..."):
 
         # Send prompt to LLM.
         with st.spinner("Thinking..."):
-            response_gen = complete(
-                MODEL,
-                full_prompt,
-                stream=True,
-                session=get_session(),
-            )
+            response_gen = get_response(full_prompt)
 
         # Stream the LLM response.
         response = st.write_stream(response_gen)
