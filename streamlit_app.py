@@ -116,7 +116,7 @@ def build_prompt(**kwargs):
     return prompt_str
 
 
-# Just a little object to make it easier to define tasks.
+# Just some little objects to make it tasks easier to read.
 TaskInfo = namedtuple("TaskInfo", ["name", "function", "args"])
 TaskResult = namedtuple("TaskResult", ["name", "result"])
 
