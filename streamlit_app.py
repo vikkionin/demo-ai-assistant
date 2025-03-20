@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import namedtuple
 from concurrent.futures import ThreadPoolExecutor
 import datetime
 import textwrap
@@ -83,6 +84,27 @@ INSTRUCTIONS = textwrap.dedent("""
 
 
 def build_prompt(**kwargs):
+    """Builds a prompt string with the kwargs are HTML-like tags.
+
+    For example, this:
+
+        build_prompt(foo="1\n2\n3", bar="4\n5\n6")
+
+    ...returns:
+
+        '''
+        <foo>
+        1
+        2
+        3
+        </foo>
+        <bar>
+        4
+        5
+        6
+        </bar>
+        '''
+    """
     prompt = []
 
     for name, contents in kwargs.items():
@@ -94,7 +116,13 @@ def build_prompt(**kwargs):
     return prompt_str
 
 
+# Just a little object to make it easier to define tasks.
+TaskInfo = namedtuple("TaskInfo", ["name", "function", "args"])
+TaskResult = namedtuple("TaskResult", ["name", "result"])
+
+
 def build_question_prompt(question):
+    """Fetches info from different services and creates the prompt string."""
     old_history = st.session_state.messages[:-HISTORY_LENGTH]
     recent_history = st.session_state.messages[-HISTORY_LENGTH:]
 
@@ -103,22 +131,45 @@ def build_question_prompt(question):
     else:
         recent_history_str = None
 
-    tasks = []
+    # Fetch information from different services in parallel.
+    task_infos = []
 
     if SUMMARIZE_OLD_HISTORY and old_history:
-        tasks.append(
-            ("old_message_summary", generate_chat_summary, (old_history,)))
+        task_infos.append(
+            TaskInfo(
+                name="old_message_summary",
+                function=generate_chat_summary,
+                args=(old_history,),
+            )
+        )
 
     if PAGES_CONTEXT_LEN:
-        tasks.append(
-            ("documentation_pages", search_relevant_pages, (question,)))
+        task_infos.append(
+            TaskInfo(
+                name="documentation_pages",
+                function=search_relevant_pages,
+                args=(question,),
+            )
+        )
 
     if DOCSTRINGS_CONTEXT_LEN:
-        tasks.append(
-            ("command_docstrings", search_relevant_docstrings, (question,)))
+        task_infos.append(
+            TaskInfo(
+                name="command_docstrings",
+                function=search_relevant_docstrings,
+                args=(question,),
+            )
+        )
 
-    results = executor.map(lambda task: (task[0], task[1](*task[2])), tasks)
-    context = {k: v for k, v in results}
+    results = executor.map(
+        lambda task_info: TaskResult(
+            name=task_info.name,
+            result=task_info.function(*task_info.args),
+        ),
+        task_infos,
+    )
+
+    context = {name: result for name, result in results}
 
     return build_prompt(
         instructions=INSTRUCTIONS,
@@ -129,6 +180,7 @@ def build_question_prompt(question):
 
 
 def generate_chat_summary(messages):
+    """Summarizes the chat history in `messages`."""
     prompt = build_prompt(
         instructions="Summarize this conversation as concisely as possible.",
         conversation=history_to_text(messages),
@@ -138,10 +190,12 @@ def generate_chat_summary(messages):
 
 
 def history_to_text(chat_history):
+    """Converts chat history into a string."""
     return "\n".join(f"[{h['role']}]: {h['content']}" for h in chat_history)
 
 
 def search_relevant_pages(query):
+    """Searches the markdown contents of Streamlit's documentation."""
     cortex_search_service = (
         root.databases[DB].schemas[SCHEMA].cortex_search_services[PAGES_SEARCH_SERVICE]
     )
@@ -162,6 +216,7 @@ def search_relevant_pages(query):
 
 
 def search_relevant_docstrings(query):
+    """Searches the docstrings of Streamlit's commands."""
     cortex_search_service = (
         root.databases[DB]
         .schemas[SCHEMA]
@@ -186,11 +241,13 @@ def search_relevant_docstrings(query):
 
 
 def send_telemetry(**kwargs):
+    """Records some telemetry about questions being asked."""
     # TODO: Implement this.
     pass
 
 
 def show_feedback_controls(message_index):
+    """Shows the "How did I do?" control."""
     st.write("")
 
     with st.popover("How did I do?"):
@@ -251,7 +308,7 @@ with st.expander(
         “Content”) may be used by Snowflake to provide, maintain, develop,
         and improve their respective offerings. For more
         information on how Snowflake may use your Content, see
-        https://streamlit.io/terms-of-service."
+        https://streamlit.io/terms-of-service.
     """)
 
 st.info(
