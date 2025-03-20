@@ -106,13 +106,16 @@ def build_question_prompt(question):
     tasks = []
 
     if SUMMARIZE_OLD_HISTORY and old_history:
-        tasks.append(("old_message_summary", generate_chat_summary, (old_history,)))
+        tasks.append(
+            ("old_message_summary", generate_chat_summary, (old_history,)))
 
     if PAGES_CONTEXT_LEN:
-        tasks.append(("documentation_pages", search_relevant_pages, (question,)))
+        tasks.append(
+            ("documentation_pages", search_relevant_pages, (question,)))
 
     if DOCSTRINGS_CONTEXT_LEN:
-        tasks.append(("command_docstrings", search_relevant_docstrings, (question,)))
+        tasks.append(
+            ("command_docstrings", search_relevant_docstrings, (question,)))
 
     results = executor.map(lambda task: (task[0], task[1](*task[2])), tasks)
     context = {k: v for k, v in results}
@@ -213,9 +216,6 @@ def show_feedback_controls(message_index):
 
 cols = st.columns([3, 1], vertical_alignment="bottom")
 
-if "prev_question_timestamp" not in st.session_state:
-    st.session_state.prev_question_timestamp = datetime.datetime.fromtimestamp(0)
-
 with cols[0]:
     st.title("Streamlit assistant", anchor=False)
 
@@ -228,6 +228,10 @@ with cols[1]:
 
 if clear_conversation or "messages" not in st.session_state:
     st.session_state.messages = []
+
+if "prev_question_timestamp" not in st.session_state:
+    st.session_state.prev_question_timestamp = datetime.datetime.fromtimestamp(
+        0)
 
 with st.expander(
     ":material/balance: "
@@ -319,7 +323,8 @@ if question := st.chat_input("Ask a question..."):
 
         # Add messages to chat history.
         st.session_state.messages.append({"role": "user", "content": question})
-        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.session_state.messages.append(
+            {"role": "assistant", "content": response})
 
         # Other stuff.
         show_feedback_controls(len(st.session_state.messages) - 1)
