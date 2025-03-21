@@ -335,6 +335,9 @@ with st.chat_message("assistant"):
 # Display chat messages from history as speech bubbles.
 for i, message in enumerate(st.session_state.messages):
     with st.chat_message(message["role"]):
+        if message["role"] == "assistant":
+            st.container()  # Fix bug where content gets duplicated.
+
         st.markdown(message["content"])
 
         if message["role"] == "assistant":
