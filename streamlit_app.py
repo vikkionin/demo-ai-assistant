@@ -336,7 +336,7 @@ with st.chat_message("assistant"):
 for i, message in enumerate(st.session_state.messages):
     with st.chat_message(message["role"]):
         if message["role"] == "assistant":
-            st.container()  # Fix bug where content gets duplicated.
+            st.container()  # Fix ghost message bug.
 
         st.markdown(message["content"])
 
@@ -381,14 +381,18 @@ if question := st.chat_input("Ask a question..."):
         with st.spinner("Thinking..."):
             response_gen = get_response(full_prompt)
 
-        # Stream the LLM response.
-        response = st.write_stream(response_gen)
+        # Put everything after the spinners in a container to fix the
+        # ghost message bug.
+        with st.container():
+            # Stream the LLM response.
+            response = st.write_stream(response_gen)
 
-        # Add messages to chat history.
-        st.session_state.messages.append({"role": "user", "content": question})
-        st.session_state.messages.append(
-            {"role": "assistant", "content": response})
+            # Add messages to chat history.
+            st.session_state.messages.append(
+                {"role": "user", "content": question})
+            st.session_state.messages.append(
+                {"role": "assistant", "content": response})
 
-        # Other stuff.
-        show_feedback_controls(len(st.session_state.messages) - 1)
-        send_telemetry(question=question, response=response)
+            # Other stuff.
+            show_feedback_controls(len(st.session_state.messages) - 1)
+            send_telemetry(question=question, response=response)
