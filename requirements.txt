@@ -2,3 +2,6 @@ snowflake-ml-python
 snowflake-snowpark-python
 snowflake
 streamlit
+trulens-core
+trulens-providers-cortex
+trulens-connectors-snowflake
