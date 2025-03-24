@@ -26,11 +26,10 @@ from trulens.apps.app import instrument
 import numpy as np
 from trulens.core import Feedback
 from trulens.core import Select
-from trulens.providers.cortex import Cortex
 from trulens.apps.app import TruApp
-from trulens.connectors.snowflake import SnowflakeConnector
 from trulens.core import TruSession
-
+from trulens.providers.cortex import Cortex
+from trulens.connectors.snowflake import SnowflakeConnector
 
 st.set_page_config(page_title="Streamlit assistant", page_icon="💬")
 
@@ -42,9 +41,13 @@ st.set_page_config(page_title="Streamlit assistant", page_icon="💬")
 def get_session():
     return st.connection("snowflake").session()
 
-conn = SnowflakeConnector(
-    snowpark_session=get_session())
-tru_session = TruSession(connector=conn)
+@st.cache_resource(ttl="12h")
+def create_session():
+    conn = SnowflakeConnector(
+        snowpark_session=get_session())
+    return TruSession(connector=conn)
+
+tru_session = create_session()
 
 root = Root(get_session())
 executor = ThreadPoolExecutor(max_workers=5)
