@@ -22,6 +22,15 @@ import streamlit as st
 from snowflake.core import Root  # requires snowflake>=0.8.0
 from snowflake.cortex import complete
 
+from trulens.apps.app import instrument
+import numpy as np
+from trulens.core import Feedback
+from trulens.core import Select
+from trulens.providers.cortex import Cortex
+from trulens.apps.app import TruApp
+from trulens.connectors.snowflake import SnowflakeConnector
+from trulens.core import TruSession
+
 
 st.set_page_config(page_title="Streamlit assistant", page_icon="💬")
 
@@ -33,6 +42,9 @@ st.set_page_config(page_title="Streamlit assistant", page_icon="💬")
 def get_session():
     return st.connection("snowflake").session()
 
+conn = SnowflakeConnector(
+    snowpark_session=get_session())
+tru_session = TruSession(connector=conn)
 
 root = Root(get_session())
 executor = ThreadPoolExecutor(max_workers=5)
@@ -119,134 +131,184 @@ def build_prompt(**kwargs):
 TaskInfo = namedtuple("TaskInfo", ["name", "function", "args"])
 TaskResult = namedtuple("TaskResult", ["name", "result"])
 
+class AssistantRAG:
+    @instrument
+    def build_question_prompt(self, question):
+        """Fetches info from different services and creates the prompt string."""
+        old_history = st.session_state.messages[:-HISTORY_LENGTH]
+        recent_history = st.session_state.messages[-HISTORY_LENGTH:]
 
-def build_question_prompt(question):
-    """Fetches info from different services and creates the prompt string."""
-    old_history = st.session_state.messages[:-HISTORY_LENGTH]
-    recent_history = st.session_state.messages[-HISTORY_LENGTH:]
+        if recent_history:
+            recent_history_str = self.history_to_text(recent_history)
+        else:
+            recent_history_str = None
 
-    if recent_history:
-        recent_history_str = history_to_text(recent_history)
-    else:
-        recent_history_str = None
+        # Fetch information from different services in parallel.
+        task_infos = []
 
-    # Fetch information from different services in parallel.
-    task_infos = []
-
-    if SUMMARIZE_OLD_HISTORY and old_history:
-        task_infos.append(
-            TaskInfo(
-                name="old_message_summary",
-                function=generate_chat_summary,
-                args=(old_history,),
+        if SUMMARIZE_OLD_HISTORY and old_history:
+            task_infos.append(
+                TaskInfo(
+                    name="old_message_summary",
+                    function=self.generate_chat_summary,
+                    args=(old_history,),
+                )
             )
+
+        if PAGES_CONTEXT_LEN:
+            task_infos.append(
+                TaskInfo(
+                    name="documentation_pages",
+                    function=self.search_relevant_pages,
+                    args=(question,),
+                )
+            )
+
+        if DOCSTRINGS_CONTEXT_LEN:
+            task_infos.append(
+                TaskInfo(
+                    name="command_docstrings",
+                    function=self.search_relevant_docstrings,
+                    args=(question,),
+                )
+            )
+
+        results = executor.map(
+            lambda task_info: TaskResult(
+                name=task_info.name,
+                result=task_info.function(*task_info.args),
+            ),
+            task_infos,
         )
 
-    if PAGES_CONTEXT_LEN:
-        task_infos.append(
-            TaskInfo(
-                name="documentation_pages",
-                function=search_relevant_pages,
-                args=(question,),
-            )
+        context = {name: result for name, result in results}
+
+        return build_prompt(
+            instructions=INSTRUCTIONS,
+            **context,
+            recent_messages=recent_history_str,
+            question=question,
         )
 
-    if DOCSTRINGS_CONTEXT_LEN:
-        task_infos.append(
-            TaskInfo(
-                name="command_docstrings",
-                function=search_relevant_docstrings,
-                args=(question,),
-            )
+    @instrument
+    def generate_chat_summary(self, messages):
+        """Summarizes the chat history in `messages`."""
+        prompt = build_prompt(
+            instructions="Summarize this conversation as concisely as possible.",
+            conversation=self.history_to_text(messages),
         )
 
-    results = executor.map(
-        lambda task_info: TaskResult(
-            name=task_info.name,
-            result=task_info.function(*task_info.args),
-        ),
-        task_infos,
+        return complete(MODEL, prompt, session=get_session())
+
+    @instrument
+    def history_to_text(self, chat_history):
+        """Converts chat history into a string."""
+        return "\n".join(f"[{h['role']}]: {h['content']}" for h in chat_history)
+
+    @instrument
+    def search_relevant_pages(self, query):
+        """Searches the markdown contents of Streamlit's documentation."""
+        cortex_search_service = (
+            root.databases[DB].schemas[SCHEMA].cortex_search_services[PAGES_SEARCH_SERVICE]
+        )
+
+        context_documents = cortex_search_service.search(
+            query,
+            columns=["PAGE_URL", "PAGE_CHUNK"],
+            filter={},
+            limit=PAGES_CONTEXT_LEN,
+        )
+
+        results = context_documents.results
+
+        context = [f"[{row['PAGE_URL']}]: {row['PAGE_CHUNK']}" for row in results]
+        context_str = "\n".join(context)
+
+        return context_str
+
+    @instrument
+    def search_relevant_docstrings(self, query):
+        """Searches the docstrings of Streamlit's commands."""
+        cortex_search_service = (
+            root.databases[DB]
+            .schemas[SCHEMA]
+            .cortex_search_services[DOCSTRINGS_SEARCH_SERVICE]
+        )
+
+        context_documents = cortex_search_service.search(
+            query,
+            columns=["STREAMLIT_VERSION", "COMMAND_NAME", "DOCSTRING_CHUNK"],
+            filter={"@eq": {"STREAMLIT_VERSION": "latest"}},
+            limit=DOCSTRINGS_CONTEXT_LEN,
+        )
+
+        results = context_documents.results
+
+        context = [
+            f"[Document {i}]: {row['DOCSTRING_CHUNK']}" for i, row in enumerate(results)
+        ]
+        context_str = "\n".join(context)
+
+        return context_str
+
+    @instrument
+    def get_response(self, prompt):
+        return complete(
+            MODEL,
+            prompt,
+            stream=True,
+            session=get_session(),
+        )
+
+if "assistant_rag" not in st.session_state:
+    st.session_state.assistant_rag = AssistantRAG()
+
+if "evals" not in st.session_state:
+    provider = Cortex(get_session())
+
+    # Question/answer relevance between overall question and answer.
+    f_answer_relevance = (
+        Feedback(provider.relevance_with_cot_reasons, name="Answer Relevance")
+        .on_input()
+        .on_output()
     )
 
-    context = {name: result for name, result in results}
-
-    return build_prompt(
-        instructions=INSTRUCTIONS,
-        **context,
-        recent_messages=recent_history_str,
-        question=question,
+    # Context relevance between question and each context chunk.
+    f_context_relevance_generate_chat_summary = (
+        Feedback(
+            provider.context_relevance_with_cot_reasons, name="Context Relevance"
+        )
+        .on_input()
+        .on(Select.RecordCalls.generate_chat_summary.rets[:])
+        .aggregate(np.mean)  # choose a different aggregation method if you wish
     )
-
-
-def generate_chat_summary(messages):
-    """Summarizes the chat history in `messages`."""
-    prompt = build_prompt(
-        instructions="Summarize this conversation as concisely as possible.",
-        conversation=history_to_text(messages),
+    # Context relevance between question and each context chunk.
+    f_context_relevance_search_relevant_pages = (
+        Feedback(
+            provider.context_relevance_with_cot_reasons, name="Context Relevance"
+        )
+        .on_input()
+        .on(Select.RecordCalls.search_relevant_pages.rets[:])
+        .aggregate(np.mean)  # choose a different aggregation method if you wish
     )
-
-    return complete(MODEL, prompt, session=get_session())
-
-
-def history_to_text(chat_history):
-    """Converts chat history into a string."""
-    return "\n".join(f"[{h['role']}]: {h['content']}" for h in chat_history)
-
-
-def search_relevant_pages(query):
-    """Searches the markdown contents of Streamlit's documentation."""
-    cortex_search_service = (
-        root.databases[DB].schemas[SCHEMA].cortex_search_services[PAGES_SEARCH_SERVICE]
+    # Context relevance between question and each context chunk.
+    f_context_relevance_search_relevant_docstrings = (
+        Feedback(
+            provider.context_relevance_with_cot_reasons, name="Context Relevance"
+        )
+        .on_input()
+        .on(Select.RecordCalls.search_relevant_docstrings.rets[:])
+        .aggregate(np.mean)  # choose a different aggregation method if you wish
     )
+    st.session_state.evals = [f_answer_relevance, f_context_relevance_generate_chat_summary, f_context_relevance_search_relevant_pages, f_context_relevance_search_relevant_docstrings]
 
-    context_documents = cortex_search_service.search(
-        query,
-        columns=["PAGE_URL", "PAGE_CHUNK"],
-        filter={},
-        limit=PAGES_CONTEXT_LEN,
-    )
-
-    results = context_documents.results
-
-    context = [f"[{row['PAGE_URL']}]: {row['PAGE_CHUNK']}" for row in results]
-    context_str = "\n".join(context)
-
-    return context_str
-
-
-def search_relevant_docstrings(query):
-    """Searches the docstrings of Streamlit's commands."""
-    cortex_search_service = (
-        root.databases[DB]
-        .schemas[SCHEMA]
-        .cortex_search_services[DOCSTRINGS_SEARCH_SERVICE]
-    )
-
-    context_documents = cortex_search_service.search(
-        query,
-        columns=["STREAMLIT_VERSION", "COMMAND_NAME", "DOCSTRING_CHUNK"],
-        filter={"@eq": {"STREAMLIT_VERSION": "latest"}},
-        limit=DOCSTRINGS_CONTEXT_LEN,
-    )
-
-    results = context_documents.results
-
-    context = [
-        f"[Document {i}]: {row['DOCSTRING_CHUNK']}" for i, row in enumerate(results)
-    ]
-    context_str = "\n".join(context)
-
-    return context_str
-
-
-def get_response(prompt):
-    return complete(
-        MODEL,
-        prompt,
-        stream=True,
-        session=get_session(),
-    )
-
+if "tru_recorder" not in st.session_state:
+    st.session_state.tru_recorder = TruApp(
+    st.session_state.assistant_rag,
+    app_name="streamlit asssistant",
+    app_version="base",
+    feedbacks=st.session_state.evals,
+)
 
 def send_telemetry(**kwargs):
     """Records some telemetry about questions being asked."""
@@ -367,19 +429,20 @@ if question := st.chat_input("Ask a question..."):
 
             question = question.replace("'", "")
 
-        # Build a detailed prompt.
-        if DEBUG_MODE:
-            with st.status("Computing prompt...") as status:
-                full_prompt = build_question_prompt(question)
-                st.code(full_prompt)
-                status.update(label="Prompt computed")
-        else:
-            with st.spinner("Researching..."):
-                full_prompt = build_question_prompt(question)
+        with st.session_state.tru_recorder:
+            # Build a detailed prompt.
+            if DEBUG_MODE:
+                with st.status("Computing prompt...") as status:
+                    full_prompt = st.session_state.assistant_rag.build_question_prompt(question)
+                    st.code(full_prompt)
+                    status.update(label="Prompt computed")
+            else:
+                with st.spinner("Researching..."):
+                    full_prompt = st.session_state.assistant_rag.build_question_prompt(question)
 
-        # Send prompt to LLM.
-        with st.spinner("Thinking..."):
-            response_gen = get_response(full_prompt)
+            # Send prompt to LLM.
+            with st.spinner("Thinking..."):
+                response_gen = st.session_state.assistant_rag.get_response(full_prompt)
 
         # Put everything after the spinners in a container to fix the
         # ghost message bug.
