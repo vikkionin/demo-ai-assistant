@@ -19,7 +19,7 @@ import textwrap
 import time
 
 import streamlit as st
-from snowflake.core import Root  # requires snowflake>=0.8.0
+from snowflake.core import Root
 from snowflake.cortex import complete
 
 
@@ -83,7 +83,7 @@ INSTRUCTIONS = textwrap.dedent("""
 
 
 def build_prompt(**kwargs):
-    """Builds a prompt string with the kwargs are HTML-like tags.
+    """Builds a prompt string with the kwargs as HTML-like tags.
 
     For example, this:
 
@@ -115,7 +115,7 @@ def build_prompt(**kwargs):
     return prompt_str
 
 
-# Just some little objects to make tasks easier to read.
+# Just some little objects to make tasks more readable.
 TaskInfo = namedtuple("TaskInfo", ["name", "function", "args"])
 TaskResult = namedtuple("TaskResult", ["name", "result"])
 
