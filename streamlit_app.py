@@ -23,7 +23,7 @@ from snowflake.core import Root
 from snowflake.cortex import complete
 
 
-st.set_page_config(page_title="Streamlit assistant", page_icon="💬")
+st.set_page_config(page_title="Streamlit AI assistant", page_icon="🤖")
 
 # -----------------------------------------------------------------------------
 # Set things up.
@@ -282,7 +282,7 @@ def show_feedback_controls(message_index):
 cols = st.columns([3, 1], vertical_alignment="bottom")
 
 with cols[0]:
-    st.title("Streamlit assistant", anchor=False)
+    st.title("Streamlit AI assistant", anchor=False)
 
 with cols[1]:
     clear_conversation = st.button(
@@ -295,8 +295,7 @@ if clear_conversation or "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "prev_question_timestamp" not in st.session_state:
-    st.session_state.prev_question_timestamp = datetime.datetime.fromtimestamp(
-        0)
+    st.session_state.prev_question_timestamp = datetime.datetime.fromtimestamp(0)
 
 with st.expander(
     ":material/balance: "
@@ -388,10 +387,8 @@ if question := st.chat_input("Ask a question..."):
             response = st.write_stream(response_gen)
 
             # Add messages to chat history.
-            st.session_state.messages.append(
-                {"role": "user", "content": question})
-            st.session_state.messages.append(
-                {"role": "assistant", "content": response})
+            st.session_state.messages.append({"role": "user", "content": question})
+            st.session_state.messages.append({"role": "assistant", "content": response})
 
             # Other stuff.
             show_feedback_controls(len(st.session_state.messages) - 1)
