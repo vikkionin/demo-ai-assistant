@@ -298,9 +298,7 @@ if "prev_question_timestamp" not in st.session_state:
     st.session_state.prev_question_timestamp = datetime.datetime.fromtimestamp(0)
 
 with st.expander(
-    ":material/balance: "
-    "This is an AI chatbot, so it may hallucinate. Expand to see legal "
-    "disclaimer."
+    "This is an AI chatbot, so it may hallucinate. Expand to see legal disclaimer."
 ):
     st.write("""
         This AI chatbot is powered by Snowflake and public Streamlit
@@ -319,12 +317,10 @@ with st.expander(
     """)
 
 st.info(
-    ":small["
     ":material/info: "
     "This app uses "
     f"[Snowflake Cortex]({CORTEX_URL}) "
     f"and is [fully open source]({GITHUB_URL})! "
-    "]"
 )
 
 # Show a fake question from the assistant to get the user started.
