@@ -76,27 +76,32 @@ INSTRUCTIONS = textwrap.dedent("""
     - Be brief, but clear. If needed, you can write paragraphs of text, like
       a documentation website.
     - Avoid experimental and private APIs.
-    - Offer alternatives within the Streamlit and Snowflake universe.
     - Provide examples.
     - Include related links throughout the text and at the bottom.
     - Don't say things like "according to the provided context".
     - Streamlit is a product of Snowflake.
+    - Offer alternatives within the Streamlit and Snowflake universe.
+    - For information about deploying in Snowflake, see
+      https://www.snowflake.com/en/product/features/streamlit-in-snowflake/
 """)
 
 SUGGESTIONS = {
     ":blue[:material/local_library:] What is Streamlit?": (
         "What is Streamlit, what is it great at, and what can I do with it?"
     ),
-    ":violet[:material/sprint:] Build an app with latest features": (
-        "Build an app showing 3 of the coolest Streamlit features of the last 6 months"
-    ),
-    ":red[:material/database:] Help me understand session state": (
+    ":green[:material/database:] Help me understand session state": (
         "Help me understand session state. What is it for? "
         "What are gotchas? What are alternatives?"
     ),
-    ":green[:material/multiline_chart:] How do I make an interactive chart?": (
+    ":orange[:material/multiline_chart:] How do I make an interactive chart?": (
         "How do I make a chart where, when I click, another chart updates?"
         "Show me examples with Altair or Plotly."
+    ),
+    ":violet[:material/apparel:] How do I customize my app?": (
+        "How do I customize my app? What does Streamlit offer? No hacks please."
+    ),
+    ":red[:material/deployed_code:] Deploying an app at work": (
+        "How do I deploy an app at work? Give me easy and performant options."
     ),
 }
 
