@@ -83,6 +83,23 @@ INSTRUCTIONS = textwrap.dedent("""
     - Streamlit is a product of Snowflake.
 """)
 
+SUGGESTIONS = {
+    ":blue[:material/local_library:] What is Streamlit?": (
+        "What is Streamlit, what is it great at, and what can I do with it?"
+    ),
+    ":violet[:material/sprint:] Build an app with latest features": (
+        "Build an app showing 3 of the coolest Streamlit features of the last 6 months"
+    ),
+    ":red[:material/database:] Help me understand session state": (
+        "Help me understand session state. What is it for? "
+        "What are gotchas? What are alternatives?"
+    ),
+    ":green[:material/multiline_chart:] How do I make an interactive chart?": (
+        "How do I make a chart where, when I click, another chart updates?"
+        "Show me examples with Altair or Plotly."
+    ),
+}
+
 
 def build_prompt(**kwargs):
     """Builds a prompt string with the kwargs as HTML-like tags.
@@ -317,25 +334,6 @@ with title_row:
         anchor=False,
         width="stretch",
     )
-
-SUGGESTIONS = {
-    ":blue[:material/local_library:] What is Streamlit?": (
-        """What is Streamlit, what is it great at, and what can I do with it?
-        """
-    ),
-    ":violet[:material/sprint:] Build an app with latest features": (
-        """Build an app showing 3 of the coolest Streamlit features of the
-        last 6 months"""
-    ),
-    ":red[:material/database:] Help me understand session state": (
-        """Help me understand session state. What is it for?
-        What are gotchas? What are alternatives?"""
-    ),
-    ":green[:material/multiline_chart:] How do I make an interactive chart?": (
-        """How do I make a chart where, when I click, another chart updates?
-        Show me examples with Altair or Plotly."""
-    ),
-}
 
 user_just_asked_initial_question = (
     "initial_question" in st.session_state and st.session_state.initial_question
