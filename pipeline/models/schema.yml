@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: streamlit_docs_pages_chunks
+    description: "Text pulled from docs.streamlit.io/llms-full.txt"
+    columns:
+      - name: page_url
+        description: "The url of the page"
+
+      - name: page_chunk
+        description: "A part (i.e. chunk) of the page's text"
+        data_tests:
+          - not_null
+
+  - name: streamlit_docstrings_chunks
+    description: "Text pulled from Streamlit docstrings"
+    columns:
+      - name: streamlit_version
+        description: "The Streamlit version. Can be x.y.z or 'latest'"
+        data_tests:
+          - not_null
+
+      - name: command_name
+        description: "The Streamlit command. Example: streamlit.altair_chart"
+        data_tests:
+          - not_null
+
+      - name: docstring_chunk
+        description: "A JSON representation of the docstring"
+        data_tests:
+          - not_null
