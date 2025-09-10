@@ -76,60 +76,26 @@ create table if not exists streamlit_docs_pages_chunks (
   page_chunk string
 );
 
--- This gets removed when DBT reruns.
-alter table streamlit_docstrings_chunks set change_tracking = true;
-alter table streamlit_docs_pages_chunks set change_tracking = true;
-
 grant ownership on table streamlit_docstrings_chunks to role st_assistant_pipeline;
 grant ownership on table streamlit_docs_pages_chunks to role st_assistant_pipeline;
 
 -- Create a UDF that can read text from a public URL.
 create or replace function http_get_or_fail(url string)
-  returns string
+  returns table(text string)
   language python
   runtime_version = '3.12'
   external_access_integrations = (st_assistant_external_integrations)
   packages = ('requests')
-  handler = 'http_get_or_fail'
+  handler = 'Generator'
 as $$
 import requests
 
-def http_get_or_fail(url: str) -> str:
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.text
+class Generator:
+    def process(self, url):
+        response = requests.get(url)
+        response.raise_for_status()
+        for line in response.text.splitlines():
+            yield (line,)
 $$;
 
 grant usage on function http_get_or_fail(string) to st_assistant_pipeline;
-
--- Create a Cortex Search services to query our tables for the AI assistant (RAG).
-
-create or replace cortex search service streamlit_docstrings_search_service
-    on docstring_chunk
-    attributes streamlit_version, command_name
-    warehouse = compute_wh
-    target_lag = '1 minute'
-    as (
-        select *
-        from streamlit_docstrings_chunks
-    );
-
-create or replace cortex search service streamlit_docs_pages_search_service
-    on page_chunk
-    attributes page_url
-    warehouse = compute_wh
-    target_lag = '1 minute'
-    as (
-        select *
-        from streamlit_docs_pages_chunks
-    );
-
-grant usage on
-    cortex search service
-    streamlit_docstrings_search_service
-    to st_assistant_user;
-
-grant usage on
-    cortex search service
-    streamlit_docs_pages_search_service
-    to st_assistant_user;

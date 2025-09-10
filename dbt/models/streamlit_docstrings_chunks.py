@@ -33,14 +33,31 @@ def model(dbt, session):
             "langchain",
             "pandas",
         ],
-        post_hook="ALTER CORTEX SEARCH SERVICE streamlit_docstrings_search_service REFRESH;",
+        # Recreate the Cortex search service every time because we're deleting / recreating
+        # the table it depends on.
+        post_hook="""
+            create or replace cortex search service streamlit_docstrings_search_service
+                on docstring_chunk
+                attributes streamlit_version, command_name
+                warehouse = compute_wh
+                target_lag = '10 minutes'
+                initialize = on_create
+                as (
+                    select *
+                    from streamlit_docstrings_chunks
+                );
+            grant usage on
+                cortex search service
+                streamlit_docstrings_search_service
+                to st_assistant_user;
+        """,
     )
 
     json_splitter = RecursiveJsonSplitter()
 
     url = "https://raw.githubusercontent.com/streamlit/docs/refs/heads/main/python/streamlit.json"
-    df = session.sql(f"select http_get_or_fail('{url}') as page_text;")
-    full_str = df.to_pandas().iat[0, 0]
+    df = session.sql(f"select * from table(http_get_or_fail('{url}'));").to_pandas()
+    full_str = df["TEXT"].str.cat(sep="\n")
     docstrings_dict = json.loads(full_str)
 
     update_dict_with_latest_streamlit_version(docstrings_dict)

@@ -3,6 +3,7 @@ ai_assistant_pipeline:
   outputs:
     dev:
       type: snowflake
+      account: YOUR_ACCOUNT # Not actually needed when running inside a Snowflake account
       database: ST_ASSISTANT_DEV
       schema: PUBLIC
       user: ST_ASSISTANT_PIPELINE
@@ -11,6 +12,7 @@ ai_assistant_pipeline:
       threads: 1
     prod:
       type: snowflake
+      account: YOUR_ACCOUNT # Not actually needed when running inside a Snowflake account
       database: ST_ASSISTANT
       schema: PUBLIC
       user: ST_ASSISTANT_PIPELINE

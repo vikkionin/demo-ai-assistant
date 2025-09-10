@@ -14,12 +14,29 @@ def model(dbt, session):
             "langchain",
             "pandas",
         ],
-        post_hook="ALTER CORTEX SEARCH SERVICE streamlit_docs_pages_search_service REFRESH;",
+        # Recreate the Cortex search service every time because we're deleting / recreating
+        # the table it depends on.
+        post_hook="""
+            create or replace cortex search service streamlit_docs_pages_search_service
+                on page_chunk
+                attributes page_url
+                warehouse = compute_wh
+                target_lag = '10 minutes'
+                initialize = on_create
+                as (
+                    select *
+                    from streamlit_docs_pages_chunks
+                );
+            grant usage on
+                cortex search service
+                streamlit_docs_pages_search_service
+                to st_assistant_user;
+        """,
     )
 
     url = "https://docs.streamlit.io/llms-full.txt"
-    df = session.sql(f"select http_get_or_fail('{url}') as page_text;").to_pandas()
-    full_str = df.iat[0, 0]
+    df = session.sql(f"select * from table(http_get_or_fail('{url}'));").to_pandas()
+    full_str = df["TEXT"].str.cat(sep="\n")
     page_strs = PAGE_SEP_RE.split(full_str)
 
     text_splitter = RecursiveCharacterTextSplitter()
