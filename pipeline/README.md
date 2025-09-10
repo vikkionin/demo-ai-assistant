@@ -1,45 +1,17 @@
-# DBT pipelien for the Streamlit AI Assistant demo
+# DBT pipeline for the Streamlit AI Assistant demo
 
-### Running from your machine
+To set up your Snowflake account, do the following:
 
-- Set up your Snowflake account at `~/.dbt/profiles.yml` like this:
+1. In `Projects`, create a new workspace from this Git repo or copy/paste
+   files into your favorite workspace.
 
-    ```yml
-    ai_assistant_pipeline:
-      outputs:
-        dev:
-          type: snowflake
-          account: YOUR_ACCOUNT_NAME # Change this
-          database: ST_ASSISTANT_DEV
-          schema: PUBLIC
-          user: ST_ASSISTANT_PIPELINE
-          password: YOUR_USERS_API_TOKEN # Change this
-          role: ST_ASSISTANT_PIPELINE
-          warehouse: COMPUTE_WH
-          threads: 1
-        prod:
-          type: snowflake
-          account: YOUR_ACCOUNT_NAME # Change this
-          database: ST_ASSISTANT
-          schema: PUBLIC
-          user: ST_ASSISTANT_PIPELINE
-          password: YOUR_USERS_API_TOKEN # Change this
-          role: ST_ASSISTANT_PIPELINE
-          warehouse: COMPUTE_WH
-          threads: 1
-      target: dev # Pick the database you want to modify.
-    ```
+1. Double click on `snowflake_setup.sql` then click ▶️ to run it.
 
-- Initialize your Python environment:
+   NOTE: By default, this code sets up the *dev* pipeline.
 
-    ```sh
-    $ uv venv
-    $ source .venv/bin/activate
-    $ uv sync
-    ```
+   To set up the *prod* pipeline, look at the line that says `IMPORTANT`,
+   uncomment the appropriate `db_name` variable, and rerun the script.
 
-- Run the pipeline inside your Snowflake account:
-
-    ```sh
-    $ dbt run
-    ```
+1. Double click the DBT project file and click ▶️ to run it.
+1. If all goes well, you can deploy and schedule this to rerun every
+   month using the Workspaces UI.

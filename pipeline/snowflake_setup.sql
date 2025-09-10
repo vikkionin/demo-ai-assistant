@@ -41,9 +41,9 @@ create or replace external access integration st_assistant_external_integrations
 ------------------------------------------------------------------------------
 -- Configure things that need to be duplicated for dev vs prod
 
--- Uncomment the database you'd like to use.
--- set db_name = 'st_assistant';      -- Used for production.
--- set db_name = 'st_assistant_dev';  -- Used for development.
+-- IMPORTANT: Uncomment the database you'd like to use.
+-- set db_name = 'st_assistant';  -- Used for production.
+set db_name = 'st_assistant_dev';  -- Used for development.
 
 create database if not exists identifier($db_name);
 use database identifier($db_name);

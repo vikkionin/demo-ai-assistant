@@ -1,0 +1,19 @@
+ai_assistant_pipeline:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      database: ST_ASSISTANT_DEV
+      schema: PUBLIC
+      user: ST_ASSISTANT_PIPELINE
+      role: ST_ASSISTANT_PIPELINE
+      warehouse: COMPUTE_WH
+      threads: 1
+    prod:
+      type: snowflake
+      database: ST_ASSISTANT
+      schema: PUBLIC
+      user: ST_ASSISTANT_PIPELINE
+      role: ST_ASSISTANT_PIPELINE
+      warehouse: COMPUTE_WH
+      threads: 1
