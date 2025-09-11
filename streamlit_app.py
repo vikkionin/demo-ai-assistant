@@ -94,7 +94,7 @@ SUGGESTIONS = {
         "What are gotchas? What are alternatives?"
     ),
     ":orange[:material/multiline_chart:] How do I make an interactive chart?": (
-        "How do I make a chart where, when I click, another chart updates?"
+        "How do I make a chart where, when I click, another chart updates? "
         "Show me examples with Altair or Plotly."
     ),
     ":violet[:material/apparel:] How do I customize my app?": (
