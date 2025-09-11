@@ -16,6 +16,8 @@ grant role st_assistant_pipeline to user st_assistant_pipeline;
 grant usage on warehouse compute_wh to role st_assistant_user;
 grant usage on warehouse compute_wh to role st_assistant_pipeline;
 
+grant execute task on account to role st_assistant_pipeline;
+
 -- Grant the _user and _pipeline roles to the current role, so we can
 -- debug things easily.
 set current_role = (select current_role());
@@ -24,7 +26,7 @@ grant role st_assistant_pipeline to role identifier($current_role);
 
 
 ------------------------------------------------------------------------------
--- Set up network rules
+-- Set up network rules, so we can access docs.streamlit.io and github.
 
 create or replace network rule st_assistant_github_network_rule
   mode = egress
