@@ -54,6 +54,9 @@ use database identifier($db_name);
 create schema if not exists public;
 use schema public;
 
+grant create task on schema public to role st_assistant_pipeline;
+grant create git repository on schema public to role st_assistant_pipeline;
+
 -- Grant privileges to the role that the AI assistant will be running as.
 grant usage on database identifier($db_name) to role st_assistant_user;
 grant usage on schema public to role st_assistant_user;
