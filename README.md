@@ -10,24 +10,14 @@ You can try out the AI Assistant app below:
 
 ## Running it yourself
 
-### Snowflake pipeline setup
+### Snowflake backend setup
 
-1. In `Projects`, create a new workspace from this Git repo or copy/paste
-   files into your favorite workspace.
+1. Open the worksheet at `snowflake/initial_setup.sql` in Snowflake and run it.
 
-1. Double click on `dbt/snowflake_setup.sql` then click ▶️ to run it.
+1. Open the notebook at `snowflake/populate_st_assistant_data.ipynb` in Snowflake and follow the
+   instructions in there.
 
-   NOTE: By default, this code sets up the *dev* pipeline.
-
-   To set up the *prod* pipeline, look at the line that says `IMPORTANT`,
-   uncomment the appropriate `db_name` variable, and rerun the script.
-
-1. Run the DBT project through the UI to check that it works.
-
-1. If all goes well, you can now deploy and schedule this to rerun every
-   month using the Workspaces UI.
-
-### Try it on your machine
+### Try the app on your machine
 
 1. Get the code:
 
